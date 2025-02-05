@@ -1,8 +1,8 @@
-// src/components/UserDetails.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Followers from "./Followers";
 import { navigate } from "astro:transitions/client";
+import { toggleShowFavorites } from "../stores/useStores";
 
 const fetchUserDetails = async (username: string) => {
   const response = await fetch(`https://api.github.com/users/${username}`);
@@ -12,17 +12,9 @@ const fetchUserDetails = async (username: string) => {
 
 interface UserDetailsProps {
   username: string;
-  favorites: any[];
-  toggleFavorite: (user: any) => void;
-  setShowFavorites: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const UserDetails: React.FC<UserDetailsProps> = ({
-  username,
-  favorites,
-  toggleFavorite,
-  setShowFavorites,
-}) => {
+const UserDetails: React.FC<UserDetailsProps> = ({ username }) => {
   const {
     data: userDetails,
     isLoading,
@@ -32,20 +24,51 @@ const UserDetails: React.FC<UserDetailsProps> = ({
     queryFn: () => fetchUserDetails(username!),
     enabled: !!username,
   });
-  console.log(userDetails);
+
+  const [favorites, setFavorites] = useState<any[]>([]);
+
+  // Load favorites from localStorage only on the client-side
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedFavorites = JSON.parse(
+        localStorage.getItem("favorites") || "[]"
+      );
+      setFavorites(storedFavorites);
+    }
+  }, []);
+
+  // Update localStorage whenever favorites change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("favorites", JSON.stringify(favorites));
+    }
+  }, [favorites]);
 
   const isFavorite = userDetails
     ? favorites.some((fav) => fav.id === userDetails.id)
     : false;
 
+  const toggleFavorite = (user: any) => {
+    setFavorites((prevFavorites) => {
+      const updatedFavorites = isFavorite
+        ? prevFavorites.filter((fav) => fav.id !== user.id)
+        : [...prevFavorites, user];
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+      }
+
+      return updatedFavorites;
+    });
+  };
+
   const handleNavigation = () => {
-    setShowFavorites((prev) => prev);
-    setShowFavorites(false);
+    toggleShowFavorites(false);
     navigate("/");
   };
 
   const handleNavigationFav = () => {
-    setShowFavorites(true);
+    toggleShowFavorites(true);
     navigate("/");
   };
 
@@ -56,24 +79,26 @@ const UserDetails: React.FC<UserDetailsProps> = ({
     <>
       <div className="searchBar">
         <div className="searchBarInner">
-          <span onClick={() => handleNavigation()}>
+          <span onClick={handleNavigation}>
             <img
               src="/arrow.svg"
               loading="lazy"
               className="searchIcon"
-              alt=""
+              alt="Back"
             />
           </span>
-
-          <h3>{userDetails.name}</h3>
+          <h3>{userDetails.name || userDetails.login}</h3>
         </div>
         <button
           onClick={() => handleNavigationFav()}
-          style={{
-            marginLeft: "10px",
-          }}
+          style={{ marginLeft: "10px" }}
         >
-          <img src={"/star.svg"} loading="lazy" className="star" alt="" />
+          <img
+            src="/star.svg"
+            loading="lazy"
+            className="star"
+            alt="Favorites"
+          />
         </button>
       </div>
       <div style={{ display: "flex" }}>
@@ -84,7 +109,6 @@ const UserDetails: React.FC<UserDetailsProps> = ({
             loading="lazy"
           />
           <div className="userDetailsInner">
-            {" "}
             <div
               style={{
                 display: "flex",
@@ -94,8 +118,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                 width: "100%",
               }}
             >
-              {" "}
-              <h1>{userDetails.name || userDetails.login}</h1>{" "}
+              <h1>{userDetails.name || userDetails.login}</h1>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -110,17 +133,15 @@ const UserDetails: React.FC<UserDetailsProps> = ({
                   src={isFavorite ? "/star-active.svg" : "/star.svg"}
                   className="star"
                   style={{ height: "20px" }}
-                  alt=""
+                  alt="Favorite toggle"
                 />
               </button>
             </div>
-            <a href={`https://github.com/${username}`}>@myGithubAccount</a>
+            <a href={`https://github.com/${username}`}>@{userDetails.login}</a>
             <p>Bio: {userDetails.bio || "No bio available"}</p>
             <div className="detailsFollower">
               <Followers name="Followers" followers={userDetails.followers} />
-
               <Followers name="Following" followers={userDetails.following} />
-
               <Followers
                 name="Public Repos"
                 followers={userDetails.public_repos}

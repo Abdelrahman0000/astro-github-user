@@ -1,5 +1,4 @@
-// src/components/SearchBar.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import UserList from "./UserList";
 import { useUserSearch } from "../hooks/useUserSearch";
 import { useDebounce } from "../hooks/useDebounce";
@@ -14,8 +13,8 @@ import {
 const SearchBar = () => {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 500);
-  const favorites = useStore(favoritesStore);
   const showFavorites = useStore(showFavoritesStore);
+  const [favorites, setFavorites] = useState([]);
 
   const {
     data,
@@ -29,10 +28,29 @@ const SearchBar = () => {
   const allUsers = data?.pages.flat() || [];
   console.log(allUsers);
 
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedFavorites = JSON.parse(
+        localStorage.getItem("favorites") || "[]"
+      );
+      setFavorites(storedFavorites);
+    }
+  }, []);
+
+  // Update localStorage when favorites change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("favorites", JSON.stringify(favorites));
+    }
+  }, [favorites]);
+
   const toggleFavorite = (user) => {
     const newFavorites = favorites.some((fav) => fav.id === user.id)
       ? favorites.filter((fav) => fav.id !== user.id)
       : [...favorites, user];
+
+    setFavorites(newFavorites);
     favoritesStore.set(newFavorites);
   };
 
