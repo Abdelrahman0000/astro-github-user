@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import UserDetailsQueryClint from '../../components/UserDetailsQueryClint';
+export function getStaticPaths() {
+  return [
+    {params: {user: 'clifford'}},
+    {params: {user: 'rover'}},
+    {params: {user: 'spot'}},
+  ];
+}
+
+const { user } = Astro.params;
+console.log(user);
+
+---
+
+<Layout>
+  <UserDetailsQueryClint username={user} client:load />
+</Layout>
