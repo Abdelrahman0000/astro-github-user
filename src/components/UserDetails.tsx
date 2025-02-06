@@ -1,7 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useStore } from "@nanostores/react";
 import Followers from "./Followers";
+import {
+  favoritesStore,
+  setFavorites,
+  showFavoritesStore,
+} from "../stores/useStores";
 
 const fetchUserDetails = async (username: string) => {
   const response = await fetch(`https://api.github.com/users/${username}`);
@@ -9,19 +15,23 @@ const fetchUserDetails = async (username: string) => {
   return response.json();
 };
 
-interface UserDetailsProps {
-  username: string;
-  setShowFavorites: (show: boolean) => void;
-  toggleFavorite: (show: Array<any>) => void;
-  favorites: Array<any>;
-}
+const UserDetails: React.FC = () => {
+  const { username } = useParams();
+  const favorites = useStore(favoritesStore);
+  const showFavorites = useStore(showFavoritesStore);
 
-const UserDetails: React.FC<UserDetailsProps> = ({
-  username,
-  setShowFavorites,
-  toggleFavorite,
-  favorites,
-}) => {
+  const toggleFavorite = (user: { id: number }) => {
+    setFavorites(
+      favorites.some((fav) => fav.id === user.id)
+        ? favorites.filter((fav) => fav.id !== user.id)
+        : [...favorites, user]
+    );
+  };
+
+  const toggleShowFavorites = (isTrue: boolean) => {
+    showFavoritesStore.set(isTrue);
+  };
+
   const {
     data: userDetails,
     isLoading,
@@ -39,12 +49,12 @@ const UserDetails: React.FC<UserDetailsProps> = ({
     : false;
 
   const handleNavigation = () => {
-    setShowFavorites(false);
+    toggleShowFavorites(false);
     navigate("/");
   };
 
   const handleNavigationFav = () => {
-    setShowFavorites(true);
+    toggleShowFavorites(true);
     navigate("/");
   };
 
