@@ -1,4 +1,3 @@
-// src/components/UserList.tsx
 import React, { useCallback, useRef } from "react";
 import UserCard from "./UserCard";
 import { User } from "../api/users";

@@ -24,8 +24,8 @@ const UserCard: React.FC<UserCardProps> = ({
         marginBottom: "5px",
       }}
     >
-      <a
-        href={`/user/${user.login}`}
+      <Link
+        to={`/user/${user.login}`}
         style={{
           display: "flex",
           alignItems: "center",
@@ -39,7 +39,7 @@ const UserCard: React.FC<UserCardProps> = ({
           loading="lazy"
         />
         <p style={{ marginLeft: "10px", color: "black" }}>@{user.login}</p>
-      </a>
+      </Link>
 
       <button
         onClick={(e) => {

@@ -1,28 +1,36 @@
-// src/components/UserDetailsQueryClint.tsx
-import React, { useState } from "react";
-import ClientProvider from "../hooks/ClientProvider";
+import React from "react";
+import { useParams } from "react-router-dom";
+import { useStore } from "@nanostores/react";
 import UserDetails from "./UserDetails";
+import {
+  favoritesStore,
+  setFavorites,
+  showFavoritesStore,
+} from "../stores/useStores";
 
-export default function UserDetailsQueryClint({ username }) {
-  const [favorites, setFavorites] = useState([]);
-  const [showFavorites, setShowFavorites] = useState(false);
+export default function UserDetailsQueryClint() {
+  const { username } = useParams();
+  const favorites = useStore(favoritesStore);
+  const showFavorites = useStore(showFavoritesStore);
 
   const toggleFavorite = (user) => {
-    setFavorites((prev) =>
-      prev.some((fav) => fav.id === user.id)
-        ? prev.filter((fav) => fav.id !== user.id)
-        : [...prev, user]
+    setFavorites(
+      favorites.some((fav) => fav.id === user.id)
+        ? favorites.filter((fav) => fav.id !== user.id)
+        : [...favorites, user]
     );
   };
 
+  const toggleShowFavorites = (isTrue) => {
+    showFavoritesStore.set(isTrue);
+  };
+
   return (
-    <ClientProvider>
-      <UserDetails
-        username={username}
-        favorites={favorites}
-        toggleFavorite={toggleFavorite}
-        setShowFavorites={setShowFavorites}
-      />
-    </ClientProvider>
+    <UserDetails
+      username={username}
+      favorites={favorites}
+      toggleFavorite={toggleFavorite}
+      setShowFavorites={toggleShowFavorites}
+    />
   );
 }

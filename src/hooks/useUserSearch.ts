@@ -1,10 +1,7 @@
-// src/hooks/useUserSearch.ts
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Users } from "../api/users";
 
 export const useUserSearch = (query: string) => {
-  console.log("useUserSearch", query);
-
   return useInfiniteQuery({
     queryKey: ["githubUsers", query],
     initialPageParam: 1,

@@ -8,13 +8,14 @@ import {
   favoritesStore,
   showFavoritesStore,
   toggleShowFavorites,
+  setFavorites,
 } from "../stores/useStores";
 
 const SearchBar = () => {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 500);
   const showFavorites = useStore(showFavoritesStore);
-  const [favorites, setFavorites] = useState([]);
+  const favorites = useStore(favoritesStore);
 
   const {
     data,
@@ -26,34 +27,14 @@ const SearchBar = () => {
   } = useUserSearch(debouncedQuery);
 
   const allUsers = data?.pages.flat() || [];
-  console.log(allUsers);
-
-  // Load favorites from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedFavorites = JSON.parse(
-        localStorage.getItem("favorites") || "[]"
-      );
-      setFavorites(storedFavorites);
-    }
-  }, []);
-
-  // Update localStorage when favorites change
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-    }
-  }, [favorites]);
 
   const toggleFavorite = (user) => {
-    const newFavorites = favorites.some((fav) => fav.id === user.id)
-      ? favorites.filter((fav) => fav.id !== user.id)
-      : [...favorites, user];
-
-    setFavorites(newFavorites);
-    favoritesStore.set(newFavorites);
+    setFavorites(
+      favorites.some((fav) => fav.id === user.id)
+        ? favorites.filter((fav) => fav.id !== user.id)
+        : [...favorites, user]
+    );
   };
-
   return (
     <div className="searchContainer">
       <div className="searchBar">

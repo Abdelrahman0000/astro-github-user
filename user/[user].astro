@@ -10,10 +10,10 @@ export function getStaticPaths() {
 }
 
 const { user } = Astro.params;
-console.log(user);
+
 
 ---
 
-<Layout>
-  <UserDetailsQueryClint username={user} client:load />
+<Layout title={`User: ${user}`} >
+  <UserDetailsQueryClint client:only />
 </Layout>

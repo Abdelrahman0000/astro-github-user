@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import Followers from "./Followers";
-import { navigate } from "astro:transitions/client";
-import { toggleShowFavorites } from "../stores/useStores";
 
 const fetchUserDetails = async (username: string) => {
   const response = await fetch(`https://api.github.com/users/${username}`);
@@ -12,9 +11,17 @@ const fetchUserDetails = async (username: string) => {
 
 interface UserDetailsProps {
   username: string;
+  setShowFavorites: (show: boolean) => void;
+  toggleFavorite: (show: Array<any>) => void;
+  favorites: Array<any>;
 }
 
-const UserDetails: React.FC<UserDetailsProps> = ({ username }) => {
+const UserDetails: React.FC<UserDetailsProps> = ({
+  username,
+  setShowFavorites,
+  toggleFavorite,
+  favorites,
+}) => {
   const {
     data: userDetails,
     isLoading,
@@ -25,50 +32,19 @@ const UserDetails: React.FC<UserDetailsProps> = ({ username }) => {
     enabled: !!username,
   });
 
-  const [favorites, setFavorites] = useState<any[]>([]);
-
-  // Load favorites from localStorage only on the client-side
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedFavorites = JSON.parse(
-        localStorage.getItem("favorites") || "[]"
-      );
-      setFavorites(storedFavorites);
-    }
-  }, []);
-
-  // Update localStorage whenever favorites change
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-    }
-  }, [favorites]);
+  const navigate = useNavigate();
 
   const isFavorite = userDetails
     ? favorites.some((fav) => fav.id === userDetails.id)
     : false;
 
-  const toggleFavorite = (user: any) => {
-    setFavorites((prevFavorites) => {
-      const updatedFavorites = isFavorite
-        ? prevFavorites.filter((fav) => fav.id !== user.id)
-        : [...prevFavorites, user];
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-      }
-
-      return updatedFavorites;
-    });
-  };
-
   const handleNavigation = () => {
-    toggleShowFavorites(false);
+    setShowFavorites(false);
     navigate("/");
   };
 
   const handleNavigationFav = () => {
-    toggleShowFavorites(true);
+    setShowFavorites(true);
     navigate("/");
   };
 
@@ -87,7 +63,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({ username }) => {
               alt="Back"
             />
           </span>
-          <h3>{userDetails.name || userDetails.login}</h3>
+          <h3>{userDetails?.name || userDetails?.login}</h3>
         </div>
         <button
           onClick={() => handleNavigationFav()}
@@ -104,8 +80,8 @@ const UserDetails: React.FC<UserDetailsProps> = ({ username }) => {
       <div style={{ display: "flex" }}>
         <div className="userDetails">
           <img
-            src={userDetails.avatar_url}
-            alt={`${userDetails.login} avatar`}
+            src={userDetails?.avatar_url}
+            alt={`${userDetails?.login} avatar`}
             loading="lazy"
           />
           <div className="userDetailsInner">
@@ -118,7 +94,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({ username }) => {
                 width: "100%",
               }}
             >
-              <h1>{userDetails.name || userDetails.login}</h1>
+              <h1>{userDetails?.name || userDetails.login}</h1>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -137,14 +113,14 @@ const UserDetails: React.FC<UserDetailsProps> = ({ username }) => {
                 />
               </button>
             </div>
-            <a href={`https://github.com/${username}`}>@{userDetails.login}</a>
-            <p>Bio: {userDetails.bio || "No bio available"}</p>
+            <a href={`https://github.com/${username}`}>@{userDetails?.login}</a>
+            <p>Bio: {userDetails?.bio || "No bio available"}</p>
             <div className="detailsFollower">
-              <Followers name="Followers" followers={userDetails.followers} />
-              <Followers name="Following" followers={userDetails.following} />
+              <Followers name="Followers" followers={userDetails?.followers} />
+              <Followers name="Following" followers={userDetails?.following} />
               <Followers
                 name="Public Repos"
-                followers={userDetails.public_repos}
+                followers={userDetails?.public_repos}
               />
             </div>
           </div>
